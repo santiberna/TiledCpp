@@ -11,10 +11,6 @@ option(BUILD_TESTS "Build unit test executable (GoogleTest)" OFF)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if (PROJECT_IS_TOP_LEVEL)
-    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-endif()
-
 ### LIBRARY
 
 add_library(${PROJECT_NAME})
@@ -37,7 +33,10 @@ target_sources(${PROJECT_NAME}
 )
 
 if (BUILD_SHARED_LIBS)
+    message(STATUS "Building TiledCPP as shared lib")
     target_compile_definitions(${PROJECT_NAME} PRIVATE TILEDCPP_EXPORT)
+else()
+    message(STATUS "Building TiledCPP as static lib")
 endif()
 
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall PRIVATE -Wextra)
