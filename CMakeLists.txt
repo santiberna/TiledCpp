@@ -17,15 +17,15 @@ endif()
 
 ### LIBRARY
 
-add_library(${CMAKE_PROJECT_NAME})
+add_library(${PROJECT_NAME})
 
-target_include_directories(${CMAKE_PROJECT_NAME} 
+target_include_directories(${PROJECT_NAME} 
     PUBLIC 
         ${CMAKE_CURRENT_SOURCE_DIR} 
         "third-party"
 )
 
-target_sources(${CMAKE_PROJECT_NAME}
+target_sources(${PROJECT_NAME}
     PUBLIC 
         "tiledcpp/config.hpp"    
         "tiledcpp/tiledcpp.hpp"
@@ -37,10 +37,10 @@ target_sources(${CMAKE_PROJECT_NAME}
 )
 
 if (BUILD_SHARED_LIBS)
-    target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE TILEDCPP_EXPORT)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE TILEDCPP_EXPORT)
 endif()
 
-target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -Wall PRIVATE -Wextra)
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall PRIVATE -Wextra)
 
 ### TESTS
 

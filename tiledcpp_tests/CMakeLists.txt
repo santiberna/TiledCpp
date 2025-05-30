@@ -1,6 +1,6 @@
 ### DECLARE TARGET
 
-set(Tests ${CMAKE_PROJECT_NAME}Tests)
+set(Tests ${PROJECT_NAME}Tests)
 add_executable(${Tests})
 
 ### FETCH GOOGLETEST ###
@@ -30,7 +30,7 @@ target_compile_options(${Tests} PRIVATE -Wall PRIVATE -Wextra)
 
 target_link_libraries(${Tests}
     PRIVATE 
-        ${CMAKE_PROJECT_NAME}
+        ${PROJECT_NAME}
         GTest::gtest
         GTest::gtest_main
 )
