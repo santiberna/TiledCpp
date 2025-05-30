@@ -16,7 +16,7 @@ using namespace tpp;
 // Helpers
 
 template <typename F>
-void iterateNodeName(const rapidxml::xml_node<char>* parent_node, const char* name, F&& function)
+void foreachChildNode(const rapidxml::xml_node<char>* parent_node, const char* name, F&& function)
 {
     for (auto child = parent_node->first_node(name); child != nullptr; child = child->next_sibling(name))
     {
@@ -24,7 +24,7 @@ void iterateNodeName(const rapidxml::xml_node<char>* parent_node, const char* na
     }
 }
 
-Result<CustomProperty> parseCustomProperty(const rapidxml::xml_node<char>* prop_node)
+Result<std::pair<std::string, CustomProperty>> parseCustomProperty(const rapidxml::xml_node<char>* prop_node)
 {
     auto* name_attrib = prop_node->first_attribute("name");
     auto* val_attrib = prop_node->first_attribute("value");
@@ -46,11 +46,11 @@ Result<CustomProperty> parseCustomProperty(const rapidxml::xml_node<char>* prop_
         {
             if (val == "true")
             {
-                return CustomProperty { true };
+                return std::make_pair(name, CustomProperty { true });
             }
             else
             {
-                return CustomProperty { false };
+                return std::make_pair(name, CustomProperty { false });
             }
         }
         else if (type_name == "color")
@@ -66,15 +66,15 @@ Result<CustomProperty> parseCustomProperty(const rapidxml::xml_node<char>* prop_
             colour.g = hex >> 8 & 0xff;
             colour.b = hex >> 0 & 0xff;
 
-            return CustomProperty { colour };
+            return std::make_pair(name, CustomProperty { colour });
         }
         else if (type_name == "float")
         {
-            return CustomProperty { detail::parseFloat(val).value_or(0.0f) };
+            return std::make_pair(name, CustomProperty { detail::parseFloat(val).value_or(0.0f) });
         }
         else if (type_name == "int")
         {
-            return CustomProperty { detail::parseInt(val).value_or(0) };
+            return std::make_pair(name, CustomProperty { detail::parseInt(val).value_or(0) });
         }
         else
         {
@@ -84,16 +84,37 @@ Result<CustomProperty> parseCustomProperty(const rapidxml::xml_node<char>* prop_
     }
     else
     {
-        return CustomProperty { val };
+        return std::make_pair(name, CustomProperty { val });
     }
 }
 
-// PropertyMap parsePropertyMap(const rapidxml::xml_node<char>& node)
-// {
-//     auto processIntoVariant = []() -> CustomProperty {
+PropertyMap parsePropertyMap(const rapidxml::xml_node<char>* node)
+{
+    PropertyMap out {};
 
-//     }
-// }
+    auto processProp = [&out](const rapidxml::xml_node<char>* node)
+    {
+        auto result = parseCustomProperty(node);
+
+        // TODO: logging or warning propagation
+        if (result)
+        {
+            out.data.emplace(result.value());
+        }
+    };
+
+    foreachChildNode(node, "property", processProp);
+    return out;
+}
+
+std::optional<int> getIntAttribute(const rapidxml::xml_node<char>* node, const char* name)
+{
+    if (auto attrib = node->first_attribute(name))
+    {
+        return detail::parseInt(attrib->value());
+    }
+    return std::nullopt;
+}
 
 // Implementation
 
@@ -154,20 +175,12 @@ Result<TileSet> TileSet::fromTSX(const std::string& path)
 
     if (auto set_node = document.first_node("tileset"))
     {
-        out.tile_size.x = detail::parseInt(set_node->first_attribute("tilewidth")->value()).value();
-        out.tile_size.y = detail::parseInt(set_node->first_attribute("tileheight")->value()).value();
-        out.tile_count = detail::parseInt(set_node->first_attribute("tilecount")->value()).value();
-        out.tile_stride = detail::parseInt(set_node->first_attribute("columns")->value()).value();
-
-        if (auto margin = set_node->first_attribute("margin"))
-        {
-            out.margin = detail::parseInt(margin->value()).value();
-        }
-
-        if (auto spacing = set_node->first_attribute("spacing"))
-        {
-            out.spacing = detail::parseInt(spacing->value()).value();
-        }
+        out.tile_size.x = getIntAttribute(set_node, "tilewidth").value_or(0);
+        out.tile_size.y = getIntAttribute(set_node, "tileheight").value_or(0);
+        out.tile_count = getIntAttribute(set_node, "tilecount").value_or(0);
+        out.tile_stride = getIntAttribute(set_node, "columns").value_or(0);
+        out.margin = getIntAttribute(set_node, "margin").value_or(0);
+        out.spacing = getIntAttribute(set_node, "spacing").value_or(0);
 
         out.name = set_node->first_attribute("name")->value();
         source_image_path = set_node->first_node("image")->first_attribute("source")->value();
@@ -176,67 +189,13 @@ Result<TileSet> TileSet::fromTSX(const std::string& path)
 
         for (auto tile_node = set_node->first_node("tile"); tile_node != nullptr; tile_node = tile_node->next_sibling("tile"))
         {
-            TileMetadata tile_data {};
+            TileData tile_data {};
             auto tile_id = detail::parseInt(tile_node->first_attribute("id")->value()).value();
 
             if (auto properties = tile_node->first_node("properties"))
             {
-                PropertyMap map;
-                for (auto prop_node = properties->first_node("property"); prop_node != nullptr; prop_node = prop_node->next_sibling("property"))
-                {
-                    std::string name = prop_node->first_attribute("name")->value();
-                    std::string val = prop_node->first_attribute("value")->value();
-
-                    if (auto type = prop_node->first_attribute("type"))
-                    {
-                        auto type_name = std::string(type->value());
-
-                        if (type_name == "bool")
-                        {
-                            if (val == "true")
-                            {
-                                map.properties.emplace(name, CustomProperty { true });
-                            }
-                            else
-                            {
-                                map.properties.emplace(name, CustomProperty { false });
-                            }
-                        }
-                        else if (type_name == "color")
-                        {
-                            std::string_view view = val;
-                            view.remove_prefix(1);
-
-                            auto hex = detail::parseHex(view).value_or(0xff000000);
-
-                            Pixel colour {};
-                            colour.a = hex >> 24 & 0xff;
-                            colour.r = hex >> 16 & 0xff;
-                            colour.g = hex >> 8 & 0xff;
-                            colour.b = hex >> 0 & 0xff;
-
-                            map.properties.emplace(name, CustomProperty { colour });
-                        }
-                        else if (type_name == "float")
-                        {
-                            map.properties.emplace(name, CustomProperty { detail::parseFloat(val).value_or(0.0f) });
-                        }
-                        else if (type_name == "int")
-                        {
-                            map.properties.emplace(name, CustomProperty { detail::parseInt(val).value_or(0) });
-                        }
-                        else
-                        {
-                            // map.emplace(name, CustomProperty { std::monostate() });
-                        }
-                    }
-                    else
-                    {
-                        map.properties.emplace(name, CustomProperty { val });
-                    }
-                }
-
-                tile_data.property_map = std::make_unique<PropertyMap>(std::move(map));
+                PropertyMap map = parsePropertyMap(properties);
+                tile_data.custom_properties = std::make_unique<PropertyMap>(std::move(map));
             }
 
             // Animations
@@ -295,7 +254,7 @@ std::optional<URect> TileSet::getTileRect(uint32_t index) const
     return out;
 }
 
-const TileMetadata* TileSet::getTileMetadata(uint32_t id) const
+const TileData* TileSet::getTileMetadata(uint32_t id) const
 {
     if (auto it = metadata.find(id); it != metadata.end())
     {
@@ -331,10 +290,10 @@ Result<TileMap> TileMap::fromTMX(const std::string& path)
     {
         // Parse map data
 
-        out.map_size.x = detail::parseInt(map_node->first_attribute("width")->value()).value();
-        out.map_size.y = detail::parseInt(map_node->first_attribute("height")->value()).value();
-        out.map_tile_size.x = detail::parseInt(map_node->first_attribute("tilewidth")->value()).value();
-        out.map_tile_size.y = detail::parseInt(map_node->first_attribute("tileheight")->value()).value();
+        out.map_size.x = getIntAttribute(map_node, "width").value_or(0);
+        out.map_size.y = getIntAttribute(map_node, "height").value_or(0);
+        out.map_tile_size.x = getIntAttribute(map_node, "tilewidth").value_or(0);
+        out.map_tile_size.y = getIntAttribute(map_node, "tileheight").value_or(0);
 
         // Parse all tilesets
 
@@ -384,7 +343,7 @@ Result<TileMap> TileMap::fromTMX(const std::string& path)
                 }
             }
 
-            out.tile_layers.emplace_back(mapped_layer);
+            out.tile_layers.emplace_back(std::move(mapped_layer));
         }
     }
 

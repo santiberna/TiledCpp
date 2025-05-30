@@ -71,10 +71,10 @@ TEST(TileSetTests, CustomProperties)
     auto meta = result->getTileMetadata(1);
 
     ASSERT_TRUE(meta != nullptr);
-    ASSERT_TRUE(meta->property_map != nullptr);
-    ASSERT_TRUE(meta->property_map->properties.size() > 0);
+    ASSERT_TRUE(meta->custom_properties != nullptr);
+    ASSERT_TRUE(meta->custom_properties->data.size() > 0);
 
-    auto& map = *meta->property_map;
+    auto& map = *meta->custom_properties;
     auto checkProp = [](tpp::CustomProperty prop, auto expected_val)
     {
         auto* val = std::get_if<decltype(expected_val)>(&prop.value);
@@ -83,10 +83,10 @@ TEST(TileSetTests, CustomProperties)
         EXPECT_EQ(*val, expected_val);
     };
 
-    checkProp(map.properties["BoolProp"], true);
-    checkProp(map.properties["IntProp"], 42);
-    checkProp(map.properties["FloatProp"], 3.14f);
-    checkProp(map.properties["StringProp"], std::string("Hello World"));
+    checkProp(map.data["BoolProp"], true);
+    checkProp(map.data["IntProp"], 42);
+    checkProp(map.data["FloatProp"], 3.14f);
+    checkProp(map.data["StringProp"], std::string("Hello World"));
 }
 
 TEST(TileMapTests, MapWith2Layers)

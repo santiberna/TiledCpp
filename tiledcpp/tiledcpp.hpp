@@ -86,13 +86,13 @@ struct TILEDCPP_API CustomProperty
 
 struct TILEDCPP_API PropertyMap
 {
-    std::unordered_map<std::string, CustomProperty> properties;
+    std::unordered_map<std::string, CustomProperty> data;
 };
 
-struct TILEDCPP_API TileMetadata
+struct TILEDCPP_API TileData
 {
     std::optional<Animation> animation {};
-    std::unique_ptr<PropertyMap> property_map {};
+    std::unique_ptr<PropertyMap> custom_properties {};
 };
 
 class TILEDCPP_API TileSet
@@ -115,10 +115,12 @@ public:
     UVec2 getTileSize() const { return tile_size; }
     const Image& getImage() const { return image; }
     const std::string& getName() const { return name; }
-    const TileMetadata* getTileMetadata(uint32_t id) const;
+    const TileData* getTileMetadata(uint32_t id) const;
 
 private:
-    std::unordered_map<uint32_t, TileMetadata> metadata {};
+    std::unique_ptr<PropertyMap> custom_properties {};
+    std::unordered_map<uint32_t, TileData> metadata {};
+
     std::string name {};
     Image image {};
 
@@ -140,6 +142,7 @@ struct TILEDCPP_API TileID
 struct TILEDCPP_API TileLayer
 {
     std::vector<TileID> tile_ids;
+    std::unique_ptr<PropertyMap> custom_properties {};
 };
 
 class TILEDCPP_API TileMap
@@ -169,5 +172,7 @@ private:
 
     UVec2 map_size {};
     UVec2 map_tile_size {};
+
+    std::unique_ptr<PropertyMap> custom_properties {};
 };
 }
