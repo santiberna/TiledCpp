@@ -4,27 +4,25 @@
 TEST(ParseHelpersTests, ParseNumberWithOffset)
 {
     std::string_view str = "1234";
-    auto result = tpp::detail::parseNumberWithOffset<int>(str);
+    auto result = tpp::detail::parseInt(str);
 
-    EXPECT_TRUE(result.has_value());
-    EXPECT_EQ(result->first, 1234);
-    EXPECT_EQ(result->second, 4);
+    ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(result.value(), 1234);
 }
 
 TEST(ParseHelpersTests, ParseNumberWithOffsetNegative)
 {
     std::string_view str = "-1234";
-    auto result = tpp::detail::parseNumberWithOffset<int>(str);
+    auto result = tpp::detail::parseInt(str);
 
-    EXPECT_TRUE(result.has_value());
-    EXPECT_EQ(result->first, -1234);
-    EXPECT_EQ(result->second, 5);
+    ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(result.value(), -1234);
 }
 
 TEST(ParseHelpersTests, ParseAllNumbers)
 {
     std::string_view str = "1234 -5678 90";
-    auto result = tpp::detail::parseAllNumbers<int>(str);
+    auto result = tpp::detail::parseAllInts(str);
 
     EXPECT_EQ(result.size(), 3);
     EXPECT_EQ(result[0], 1234);
@@ -35,27 +33,36 @@ TEST(ParseHelpersTests, ParseAllNumbers)
 TEST(ParseHelpersTests, ParseNumberFloat)
 {
     std::string_view str = "1234.56";
-    auto result = tpp::detail::parseNumber<float>(str);
+    auto result = tpp::detail::parseFloat(str);
 
-    EXPECT_TRUE(result.has_value());
+    ASSERT_TRUE(result.has_value());
     EXPECT_EQ(result.value(), 1234.56f);
 }
 
 TEST(ParseHelpersTests, ParseNumberFloatNegative)
 {
     std::string_view str = "-1234.56";
-    auto result = tpp::detail::parseNumber<float>(str);
+    auto result = tpp::detail::parseFloat(str);
 
-    EXPECT_TRUE(result.has_value());
+    ASSERT_TRUE(result.has_value());
     EXPECT_EQ(result.value(), -1234.56f);
 }
 
 TEST(ParseHelpersTests, ParseNumberInvalid)
 {
     std::string_view str = "abc";
-    auto result = tpp::detail::parseNumber<int>(str);
+    auto result = tpp::detail::parseInt(str);
 
     EXPECT_FALSE(result.has_value());
+}
+
+TEST(ParseHelpersTests, ParseHex)
+{
+    std::string_view str = "ffffffff";
+    auto result = tpp::detail::parseHex(str);
+
+    ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(result.value(), 0xffffffff);
 }
 
 TEST(ParseHelperTests, ResolvePath)

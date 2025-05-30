@@ -43,21 +43,75 @@ TEST(TileSetTests, CheckSpacingMarginMetrics)
     }
 }
 
-TEST(TileSetTests, CheckAnimation)
+TEST(TileSetTests, Animations)
 {
     auto result = tpp::TileSet::fromTSX("tiledcpp_tests/files/tileset3.tsx");
     ASSERT_TRUE(result.has_value()) << result.error().message;
     ASSERT_EQ(result->getTileCount(), 16);
 
-    auto animation_tile = result->getTileMetadata(0);
-    ASSERT_TRUE(animation_tile != nullptr);
-    ASSERT_TRUE(animation_tile->animation.has_value());
+    auto meta = result->getTileMetadata(0);
+    ASSERT_TRUE(meta != nullptr);
+    ASSERT_TRUE(meta->animation.has_value());
 
-    auto& frames = animation_tile->animation->frames;
+    auto& frames = meta->animation->frames;
     ASSERT_EQ(frames.size(), 2);
 
     EXPECT_EQ(frames[0].duration_ms, 10);
     EXPECT_EQ(frames[1].duration_ms, 20);
     EXPECT_EQ(frames[0].tile_id, 0);
     EXPECT_EQ(frames[1].tile_id, 1);
+}
+
+TEST(TileSetTests, CustomProperties)
+{
+    auto result = tpp::TileSet::fromTSX("tiledcpp_tests/files/tileset3.tsx");
+    ASSERT_TRUE(result.has_value()) << result.error().message;
+    ASSERT_EQ(result->getTileCount(), 16);
+
+    auto meta = result->getTileMetadata(1);
+
+    ASSERT_TRUE(meta != nullptr);
+    ASSERT_TRUE(meta->property_map != nullptr);
+    ASSERT_TRUE(meta->property_map->properties.size() > 0);
+
+    auto& map = *meta->property_map;
+    auto checkProp = [](tpp::CustomProperty prop, auto expected_val)
+    {
+        auto* val = std::get_if<decltype(expected_val)>(&prop.value);
+
+        ASSERT_TRUE(val != nullptr);
+        EXPECT_EQ(*val, expected_val);
+    };
+
+    checkProp(map.properties["BoolProp"], true);
+    checkProp(map.properties["IntProp"], 42);
+    checkProp(map.properties["FloatProp"], 3.14f);
+    checkProp(map.properties["StringProp"], std::string("Hello World"));
+}
+
+TEST(TileMapTests, MapWith2Layers)
+{
+    auto result = tpp::TileMap::fromTMX("tiledcpp_tests/files/map1.tmx");
+    ASSERT_TRUE(result.has_value()) << result.error().message;
+
+    EXPECT_EQ(result->getTileSets().size(), 2);
+    EXPECT_EQ(result->getMapTileSize(), (tpp::UVec2 { 4, 4 }));
+    EXPECT_EQ(result->getMapGridSize(), (tpp::UVec2 { 4, 2 }));
+
+    ASSERT_EQ(result->getTileLayers().size(), 2);
+
+    auto& layer1 = result->getTileLayers().at(0);
+    auto& layer2 = result->getTileLayers().at(1);
+
+    ASSERT_EQ(layer1.tile_ids.size(), 8);
+    ASSERT_EQ(layer2.tile_ids.size(), 8);
+
+    EXPECT_EQ(layer1.tile_ids.at(3).tileset, 0);
+    EXPECT_EQ(layer1.tile_ids.at(3).id, 3);
+
+    for (auto tile : layer2.tile_ids)
+    {
+        EXPECT_EQ(tile.tileset, 1);
+        EXPECT_EQ(tile.id, 1);
+    }
 }

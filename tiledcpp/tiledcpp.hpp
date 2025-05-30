@@ -1,14 +1,6 @@
 #pragma once
 
-#ifdef _WIN32
-#ifdef TILEDCPP_EXPORT
-#define TILEDCPP_API __declspec(dllexport)
-#else
-#define TILEDCPP_API __declspec(dllimport)
-#endif
-#else
-#define TILEDCPP_API
-#endif
+#include "tiledcpp/config.hpp"
 
 #include <expected/expected.hpp>
 #include <memory>
@@ -92,16 +84,30 @@ struct TILEDCPP_API CustomProperty
     std::variant<bool, int, float, std::string, Pixel> value;
 };
 
+struct TILEDCPP_API PropertyMap
+{
+    std::unordered_map<std::string, CustomProperty> properties;
+};
+
 struct TILEDCPP_API TileMetadata
 {
     std::optional<Animation> animation {};
-    std::unique_ptr<std::unordered_map<std::string, CustomProperty>> properties {};
+    std::unique_ptr<PropertyMap> property_map {};
 };
 
 class TILEDCPP_API TileSet
 {
 public:
     TileSet() = default;
+
+    // Non copyable
+    TileSet(const TileSet&) = delete;
+    TileSet& operator=(const TileSet&) = delete;
+
+    // Movable
+    TileSet(TileSet&&) = default;
+    TileSet& operator=(TileSet&&) = default;
+
     static Result<TileSet> fromTSX(const std::string& path);
 
     std::optional<URect> getTileRect(uint32_t tile_id) const;
@@ -125,6 +131,43 @@ private:
     UVec2 tile_size {};
 };
 
-class TILEDCPP_API TileMap {};
+struct TILEDCPP_API TileID
+{
+    uint32_t tileset {};
+    uint32_t id {};
+};
 
+struct TILEDCPP_API TileLayer
+{
+    std::vector<TileID> tile_ids;
+};
+
+class TILEDCPP_API TileMap
+{
+public:
+    TileMap() = default;
+
+    // Non copyable
+    TileMap(const TileMap&) = delete;
+    TileMap& operator=(const TileMap&) = delete;
+
+    // Movable
+    TileMap(TileMap&&) = default;
+    TileMap& operator=(TileMap&&) = default;
+
+    static Result<TileMap> fromTMX(const std::string& path);
+
+    const std::vector<TileSet>& getTileSets() const { return tile_sets; }
+    const std::vector<TileLayer>& getTileLayers() const { return tile_layers; }
+
+    UVec2 getMapGridSize() const { return map_size; }
+    UVec2 getMapTileSize() const { return map_tile_size; }
+
+private:
+    std::vector<TileSet> tile_sets {};
+    std::vector<TileLayer> tile_layers {};
+
+    UVec2 map_size {};
+    UVec2 map_tile_size {};
+};
 }

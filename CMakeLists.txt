@@ -8,7 +8,7 @@ option(BUILD_TESTS "Build unit test executable (GoogleTest)" OFF)
 
 ### REQUIREMENTS
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (PROJECT_IS_TOP_LEVEL)
@@ -27,6 +27,7 @@ target_include_directories(${CMAKE_PROJECT_NAME}
 
 target_sources(${CMAKE_PROJECT_NAME}
     PUBLIC 
+        "tiledcpp/config.hpp"    
         "tiledcpp/tiledcpp.hpp"
         "tiledcpp/detail/parse_helpers.hpp"
 
