@@ -37,6 +37,7 @@ if (BUILD_SHARED_LIBS)
     target_compile_definitions(${PROJECT_NAME} PRIVATE TILEDCPP_EXPORT)
 else()
     message(STATUS "Building TiledCPP as static lib")
+    target_compile_definitions(${PROJECT_NAME} PUBLIC TILEDCPP_STATIC)
 endif()
 
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall PRIVATE -Wextra)
