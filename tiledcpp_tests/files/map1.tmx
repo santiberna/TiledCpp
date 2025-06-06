@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="4" height="2" tilewidth="4" tileheight="4" infinite="0" nextlayerid="3" nextobjectid="1">
+ <properties>
+  <property name="TestProperty" type="float" value="3.14"/>
+ </properties>
  <tileset firstgid="1" source="tileset4.tsx"/>
  <tileset firstgid="5" source="tileset5.tsx"/>
  <layer id="1" name="Tile Layer 1" width="4" height="2">
+  <properties>
+   <property name="TestProperty" type="float" value="3.14"/>
+  </properties>
   <data encoding="csv">
 1,2,3,4,
 5,6,7,8

@@ -1,112 +1,13 @@
 #include "tiledcpp/tiledcpp.hpp"
-#include "tiledcpp/detail/parse_helpers.hpp"
 
-#include <RapidXML/rapidxml.hpp>
+#include "tiledcpp/detail/parse_helpers.hpp"
+#include "tiledcpp/detail/xml_helpers.hpp"
 
 #include <algorithm>
-
-namespace stb
-{
-#define STB_IMAGE_STATIC
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image/stb_image.h"
-}
 
 using namespace tpp;
 
 // Helpers
-
-template <typename F>
-void foreachChildNode(const rapidxml::xml_node<char>* parent_node, const char* name, F&& function)
-{
-    for (auto child = parent_node->first_node(name); child != nullptr; child = child->next_sibling(name))
-    {
-        function(child);
-    }
-}
-
-Result<std::pair<std::string, CustomProperty>> parseCustomProperty(const rapidxml::xml_node<char>* prop_node)
-{
-    auto* name_attrib = prop_node->first_attribute("name");
-    auto* val_attrib = prop_node->first_attribute("value");
-
-    if (name_attrib == nullptr || val_attrib == nullptr)
-    {
-        Error err { "[Custom Property] could not find name or value attributes" };
-        return tl::make_unexpected(err);
-    }
-
-    std::string name = name_attrib->value();
-    std::string val = val_attrib->value();
-
-    if (auto type = prop_node->first_attribute("type"))
-    {
-        auto type_name = std::string(type->value());
-
-        if (type_name == "bool")
-        {
-            if (val == "true")
-            {
-                return std::make_pair(name, CustomProperty { true });
-            }
-            else
-            {
-                return std::make_pair(name, CustomProperty { false });
-            }
-        }
-        else if (type_name == "color")
-        {
-            std::string_view view = val;
-            view.remove_prefix(1);
-
-            auto hex = detail::parseHex(view).value_or(0xff000000);
-
-            Pixel colour {};
-            colour.a = hex >> 24 & 0xff;
-            colour.r = hex >> 16 & 0xff;
-            colour.g = hex >> 8 & 0xff;
-            colour.b = hex >> 0 & 0xff;
-
-            return std::make_pair(name, CustomProperty { colour });
-        }
-        else if (type_name == "float")
-        {
-            return std::make_pair(name, CustomProperty { detail::parseFloat(val).value_or(0.0f) });
-        }
-        else if (type_name == "int")
-        {
-            return std::make_pair(name, CustomProperty { detail::parseInt(val).value_or(0) });
-        }
-        else
-        {
-            Error err { "[Custom Property] Unknown or unimplemented attribute type found" };
-            return tl::make_unexpected(err);
-        }
-    }
-    else
-    {
-        return std::make_pair(name, CustomProperty { val });
-    }
-}
-
-PropertyMap parsePropertyMap(const rapidxml::xml_node<char>* node)
-{
-    PropertyMap out {};
-
-    auto processProp = [&out](const rapidxml::xml_node<char>* node)
-    {
-        auto result = parseCustomProperty(node);
-
-        // TODO: logging or warning propagation
-        if (result)
-        {
-            out.data.emplace(result.value());
-        }
-    };
-
-    foreachChildNode(node, "property", processProp);
-    return out;
-}
 
 std::optional<int> getIntAttribute(const rapidxml::xml_node<char>* node, const char* name)
 {
@@ -117,39 +18,22 @@ std::optional<int> getIntAttribute(const rapidxml::xml_node<char>* node, const c
     return std::nullopt;
 }
 
+std::unique_ptr<PropertyMap> tryGetProperties(const rapidxml::xml_node<char>* node)
+{
+    if (auto* props = node->first_node("properties"))
+    {
+        auto result = PropertyMap::fromNode(props);
+        if (result)
+        {
+            return std::make_unique<PropertyMap>(std::move(result.value()));
+        }
+    }
+    return nullptr;
+}
+
 // Implementation
 
-Result<Image> Image::fromPath(const std::string& path)
-{
-    int width, channels, height;
-    auto* data = stb::stbi_load(path.c_str(), &width, &height, &channels, 4);
-
-    if (data == nullptr)
-    {
-        Error err { std::string("[Image] Failed to load image: ") + path };
-        return tl::make_unexpected(err);
-    }
-
-    Image out {};
-    out.size = { static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
-
-    out.data = std::shared_ptr<Pixel>((Pixel*)data, [](void* ptr)
-        { stb::stbi_image_free(ptr); });
-
-    return out;
-}
-
-Pixel Image::getPixel(const UVec2& pos) const
-{
-    return data.get()[pos.x + pos.y * size.x];
-}
-
-void Image::freeData()
-{
-    data.reset();
-}
-
-Result<TileSet> TileSet::fromTSX(const std::string& path)
+Result<TileSet> TileSet::fromTSX(const std::string& path, std::ostream* warnings)
 {
     TileSet out {};
 
@@ -186,6 +70,10 @@ Result<TileSet> TileSet::fromTSX(const std::string& path)
         out.name = set_node->first_attribute("name")->value();
         source_image_path = set_node->first_node("image")->first_attribute("source")->value();
 
+        // Custom Props
+
+        out.custom_properties = tryGetProperties(set_node);
+
         // Iterate all tile properties
 
         for (auto tile_node = set_node->first_node("tile"); tile_node != nullptr; tile_node = tile_node->next_sibling("tile"))
@@ -195,7 +83,7 @@ Result<TileSet> TileSet::fromTSX(const std::string& path)
 
             if (auto properties = tile_node->first_node("properties"))
             {
-                PropertyMap map = parsePropertyMap(properties);
+                PropertyMap map = PropertyMap::fromNode(properties).value();
                 tile_data.custom_properties = std::make_unique<PropertyMap>(std::move(map));
             }
 
@@ -264,7 +152,7 @@ const TileData* TileSet::getTileMetadata(uint32_t id) const
     return nullptr;
 }
 
-Result<TileMap> TileMap::fromTMX(const std::string& path)
+Result<TileMap> TileMap::fromTMX(const std::string& path, std::ostream* warnings)
 {
     auto base = detail::getDirectory(path);
     auto extension = detail::getExtension(path);
@@ -295,6 +183,10 @@ Result<TileMap> TileMap::fromTMX(const std::string& path)
         out.map_size.y = getIntAttribute(map_node, "height").value_or(0);
         out.map_tile_size.x = getIntAttribute(map_node, "tilewidth").value_or(0);
         out.map_tile_size.y = getIntAttribute(map_node, "tileheight").value_or(0);
+
+        // Custom Properties
+
+        out.custom_properties = tryGetProperties(map_node);
 
         // Parse all tilesets
 
@@ -344,6 +236,8 @@ Result<TileMap> TileMap::fromTMX(const std::string& path)
                 }
             }
 
+            // Custom Properties
+            mapped_layer.custom_properties = tryGetProperties(layer);
             out.tile_layers.emplace_back(std::move(mapped_layer));
         }
     }

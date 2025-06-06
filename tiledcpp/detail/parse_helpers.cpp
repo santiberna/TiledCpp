@@ -1,5 +1,6 @@
 #include "tiledcpp/detail/parse_helpers.hpp"
 
+#include <charconv>
 #include <filesystem>
 #include <fstream>
 

@@ -115,3 +115,20 @@ TEST(TileMapTests, MapWith2Layers)
         EXPECT_EQ(tile.id, 1);
     }
 }
+
+TEST(TileMapTests, MapProperties)
+{
+    auto result = tpp::TileMap::fromTMX("tiledcpp_tests/files/map1.tmx");
+    ASSERT_TRUE(result.has_value()) << result.error().message;
+    ASSERT_EQ(result->getTileLayers().size(), 2);
+
+    auto& layer = result->getTileLayers().at(0);
+
+    ASSERT_TRUE(result.value().getProperties() != nullptr);
+    auto val = result->getProperties()->data.at("TestProperty");
+    EXPECT_TRUE(std::get_if<float>(&val.value) != nullptr);
+
+    ASSERT_TRUE(layer.custom_properties != nullptr);
+    auto val2 = layer.custom_properties->data.at("TestProperty");
+    EXPECT_TRUE(std::get_if<float>(&val2.value) != nullptr);
+}

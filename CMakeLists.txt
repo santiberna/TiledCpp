@@ -25,10 +25,17 @@ target_sources(${PROJECT_NAME}
     PUBLIC 
         "tiledcpp/config.hpp"    
         "tiledcpp/tiledcpp.hpp"
+        "tiledcpp/types/result.hpp"
+        "tiledcpp/types/math.hpp"
+        "tiledcpp/types/image.hpp" 
         "tiledcpp/detail/parse_helpers.hpp"
+        "tiledcpp/detail/xml_helpers.hpp"
 
     PRIVATE
         "tiledcpp/tiledcpp.cpp"
+        "tiledcpp/types/image.cpp" 
+        "tiledcpp/types/math.cpp" 
+        "tiledcpp/types/properties.cpp" 
         "tiledcpp/detail/parse_helpers.cpp"
 )
 
