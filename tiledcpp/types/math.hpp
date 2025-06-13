@@ -20,6 +20,7 @@ struct TILEDCPP_API IVec2
     IVec2(const UVec2& uvec);
 
     bool operator==(const IVec2& o) const { return x == o.x && y == o.y; }
+    IVec2 operator+(const IVec2& o) const { return { x + o.x, y + o.x }; }
     IVec2 operator-(const IVec2& o) const { return { x - o.x, y - o.x }; }
 };
 
@@ -29,6 +30,7 @@ struct TILEDCPP_API UVec2
     uint32_t y {};
 
     bool operator==(const UVec2& o) const { return x == o.x && y == o.y; }
+    UVec2 operator+(const UVec2& o) const { return { x + o.x, y + o.x }; }
 };
 
 struct TILEDCPP_API URect
