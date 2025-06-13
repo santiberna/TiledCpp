@@ -6,6 +6,23 @@
 namespace tpp
 {
 
+struct UVec2;
+struct Ivec2;
+struct Pixel;
+struct URect;
+
+struct TILEDCPP_API IVec2
+{
+    int32_t x {};
+    int32_t y {};
+
+    IVec2(int32_t x, int32_t y);
+    IVec2(const UVec2& uvec);
+
+    bool operator==(const IVec2& o) const { return x == o.x && y == o.y; }
+    IVec2 operator-(const IVec2& o) const { return { x - o.x, y - o.x }; }
+};
+
 struct TILEDCPP_API UVec2
 {
     uint32_t x {};
