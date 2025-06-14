@@ -49,11 +49,10 @@ TEST(TileSetTests, Animations)
     ASSERT_TRUE(result.has_value()) << result.error().message;
     ASSERT_EQ(result->getTileCount(), 16);
 
-    auto meta = result->getTileMetadata(0);
-    ASSERT_TRUE(meta != nullptr);
-    ASSERT_TRUE(meta->animation.has_value());
+    auto anim = result->getTileAnimation(0);
+    ASSERT_TRUE(anim != nullptr);
 
-    auto& frames = meta->animation->frames;
+    auto& frames = anim->frames;
     ASSERT_EQ(frames.size(), 2);
 
     EXPECT_EQ(frames[0].duration_ms, 10);
@@ -68,13 +67,13 @@ TEST(TileSetTests, CustomProperties)
     ASSERT_TRUE(result.has_value()) << result.error().message;
     ASSERT_EQ(result->getTileCount(), 16);
 
-    auto meta = result->getTileMetadata(1);
+    auto props = result->getTileProperties(1);
 
-    ASSERT_TRUE(meta != nullptr);
-    ASSERT_TRUE(meta->custom_properties != nullptr);
-    ASSERT_TRUE(meta->custom_properties->size() > 0);
+    ASSERT_TRUE(props != nullptr);
+    ASSERT_TRUE(props != nullptr);
+    ASSERT_TRUE(props->size() > 0);
 
-    auto& map = *meta->custom_properties;
+    auto& map = *props;
 
     auto checkProp = [](const tpp::PropertyMap& map, const std::string& key, auto expected_val)
     {

@@ -22,12 +22,6 @@ struct TILEDCPP_API Animation
     std::vector<KeyFrame> frames {};
 };
 
-struct TILEDCPP_API TileData
-{
-    std::optional<Animation> animation {};
-    std::unique_ptr<PropertyMap> custom_properties {};
-};
-
 class TILEDCPP_API TileSet
 {
 public:
@@ -52,11 +46,14 @@ public:
 
     const std::string& getName() const { return name; }
     const PropertyMap* getProperties() const { return custom_properties.get(); }
-    const TileData* getTileMetadata(uint32_t id) const;
+    const PropertyMap* getTileProperties(uint32_t tile) const;
+    const Animation* getTileAnimation(uint32_t tile) const;
 
 private:
     std::unique_ptr<PropertyMap> custom_properties {};
-    std::unordered_map<uint32_t, TileData> metadata {};
+
+    std::unordered_map<uint32_t, PropertyMap> tile_properties {};
+    std::unordered_map<uint32_t, Animation> tile_animations {};
 
     std::string name {};
     Image image {};

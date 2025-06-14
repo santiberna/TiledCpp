@@ -33,7 +33,7 @@ std::unique_ptr<PropertyMap> tryGetProperties(const rapidxml::xml_node<char>* no
 
 // Implementation
 
-Result<TileSet> TileSet::fromTSX(const std::string& path, std::ostream* warnings)
+Result<TileSet> TileSet::fromTSX(const std::string& path, [[maybe_unused]] std::ostream* warnings)
 {
     TileSet out {};
 
@@ -78,13 +78,12 @@ Result<TileSet> TileSet::fromTSX(const std::string& path, std::ostream* warnings
 
         for (auto tile_node = set_node->first_node("tile"); tile_node != nullptr; tile_node = tile_node->next_sibling("tile"))
         {
-            TileData tile_data {};
             auto tile_id = detail::parseInt(tile_node->first_attribute("id")->value()).value();
 
             if (auto properties = tile_node->first_node("properties"))
             {
                 PropertyMap map = PropertyMap::fromNode(properties).value();
-                tile_data.custom_properties = std::make_unique<PropertyMap>(std::move(map));
+                out.tile_properties.emplace(tile_id, std::move(map));
             }
 
             // Animations
@@ -104,10 +103,8 @@ Result<TileSet> TileSet::fromTSX(const std::string& path, std::ostream* warnings
                     frame_node = frame_node->next_sibling("frame");
                 }
 
-                tile_data.animation = animation;
+                out.tile_animations.emplace(tile_id, std::move(animation));
             }
-
-            out.metadata.emplace(tile_id, std::move(tile_data));
         }
     }
 
@@ -143,16 +140,25 @@ std::optional<URect> TileSet::getTileRect(uint32_t index) const
     return out;
 }
 
-const TileData* TileSet::getTileMetadata(uint32_t id) const
+const PropertyMap* TileSet::getTileProperties(uint32_t tile) const
 {
-    if (auto it = metadata.find(id); it != metadata.end())
+    if (auto it = tile_properties.find(tile); it != tile_properties.end())
     {
         return &it->second;
     }
     return nullptr;
 }
 
-Result<TileMap> TileMap::fromTMX(const std::string& path, std::ostream* warnings)
+const Animation* TileSet::getTileAnimation(uint32_t tile) const
+{
+    if (auto it = tile_animations.find(tile); it != tile_animations.end())
+    {
+        return &it->second;
+    }
+    return nullptr;
+}
+
+Result<TileMap> TileMap::fromTMX(const std::string& path, [[maybe_unused]] std::ostream* warnings)
 {
     auto base = detail::getDirectory(path);
     auto extension = detail::getExtension(path);
