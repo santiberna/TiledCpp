@@ -131,3 +131,12 @@ TEST(TileMapTests, MapProperties)
     auto val2 = layer.custom_properties->get<float>("TestProperty");
     EXPECT_TRUE(val2.has_value());
 }
+
+TEST(TileMapTests, FindLayer)
+{
+    auto result = tpp::TileMap::fromTMX("tiledcpp_tests/files/map1.tmx");
+    ASSERT_TRUE(result.has_value()) << result.error().message;
+
+    auto* found = result->findTileLayer("NamedLayer");
+    EXPECT_TRUE(found != nullptr);
+}

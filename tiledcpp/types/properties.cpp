@@ -1,8 +1,8 @@
 
 #include "tiledcpp/types/properties.hpp"
-
 #include "tiledcpp/detail/parse_helpers.hpp"
-#include "tiledcpp/detail/xml_helpers.hpp"
+
+#include <RapidXML/rapidxml.hpp>
 
 tpp::Result<std::pair<std::string, tpp::CustomProperty>> parseCustomProperty(const rapidxml::xml_node<char>* prop_node)
 {
@@ -67,17 +67,16 @@ tpp::Result<tpp::PropertyMap> tpp::PropertyMap::fromNode(const rapidxml::xml_nod
 {
     PropertyMap out {};
 
-    auto processProp = [&out](const rapidxml::xml_node<char>* node)
+    for (auto prop = node->first_node("property"); prop != nullptr; prop = prop->next_sibling("property"))
     {
-        auto result = parseCustomProperty(node);
+        auto result = parseCustomProperty(prop);
 
         // TODO: logging or warning propagation
         if (result)
         {
             out.data.emplace(result.value());
         }
-    };
+    }
 
-    detail::foreachChildNode(node, "property", processProp);
     return out;
 }

@@ -226,6 +226,12 @@ Result<TileMap> TileMap::fromTMX(const std::string& path, [[maybe_unused]] std::
             auto tile_indices = detail::parseAllInts(csv_data);
 
             TileLayer mapped_layer {};
+
+            if (auto attribute = layer->first_attribute("name"))
+            {
+                mapped_layer.name = attribute->value();
+            }
+
             mapped_layer.tile_ids = Array2D<TileID>(out.map_size.x, out.map_size.y);
 
             size_t index = 0;
@@ -254,4 +260,25 @@ Result<TileMap> TileMap::fromTMX(const std::string& path, [[maybe_unused]] std::
     }
 
     return out;
+}
+
+const TileLayer* TileMap::findTileLayer(const std::string& name) const
+{
+    auto find_name = [&name](const TileLayer& layer)
+    {
+        return layer.name == name;
+    };
+
+    auto it = std::find_if(tile_layers.begin(), tile_layers.end(), find_name);
+
+    if (it != tile_layers.end())
+    {
+        return &*it;
+    }
+    return nullptr;
+}
+
+TileLayer* TileMap::findTileLayer(const std::string& name)
+{
+    return const_cast<TileLayer*>(std::as_const(*this).findTileLayer(name));
 }

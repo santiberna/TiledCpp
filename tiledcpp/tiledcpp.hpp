@@ -75,6 +75,7 @@ struct TILEDCPP_API TileID
 
 struct TILEDCPP_API TileLayer
 {
+    std::string name {};
     Array2D<TileID> tile_ids;
     std::unique_ptr<PropertyMap> custom_properties {};
 };
@@ -98,6 +99,9 @@ public:
     std::vector<TileLayer>& getTileLayers() { return tile_layers; }
     const std::vector<TileSet>& getTileSets() const { return tile_sets; }
     const std::vector<TileLayer>& getTileLayers() const { return tile_layers; }
+
+    const TileLayer* findTileLayer(const std::string& name) const;
+    TileLayer* findTileLayer(const std::string& name);
 
     const PropertyMap* getProperties() const { return custom_properties.get(); }
 
