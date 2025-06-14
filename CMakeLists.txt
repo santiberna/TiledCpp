@@ -29,7 +29,6 @@ target_sources(${PROJECT_NAME}
         "tiledcpp/types/math.hpp"
         "tiledcpp/types/image.hpp" 
         "tiledcpp/detail/parse_helpers.hpp"
-        "tiledcpp/detail/xml_helpers.hpp"
 
     PRIVATE
         "tiledcpp/tiledcpp.cpp"
