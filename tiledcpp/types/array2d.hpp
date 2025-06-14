@@ -54,7 +54,7 @@ public:
     const T& at(uint32_t i, uint32_t j) const;
 
     T& at(const UVec2& ij) { return at(ij.x, ij.y); }
-    const T& at(const UVec2 ij) const { return at(ij.x, ij.y); }
+    const T& at(const UVec2& ij) const { return at(ij.x, ij.y); }
 
     UVec2 size() const { return array_size; }
 
