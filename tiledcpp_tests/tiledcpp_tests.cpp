@@ -72,21 +72,21 @@ TEST(TileSetTests, CustomProperties)
 
     ASSERT_TRUE(meta != nullptr);
     ASSERT_TRUE(meta->custom_properties != nullptr);
-    ASSERT_TRUE(meta->custom_properties->data.size() > 0);
+    ASSERT_TRUE(meta->custom_properties->size() > 0);
 
     auto& map = *meta->custom_properties;
-    auto checkProp = [](tpp::CustomProperty prop, auto expected_val)
-    {
-        auto* val = std::get_if<decltype(expected_val)>(&prop.value);
 
-        ASSERT_TRUE(val != nullptr);
-        EXPECT_EQ(*val, expected_val);
+    auto checkProp = [](const tpp::PropertyMap& map, const std::string& key, auto expected_val)
+    {
+        using Type = decltype(expected_val);
+        ASSERT_TRUE(map.has<Type>(key));
+        EXPECT_EQ(map.get<Type>(key).value(), expected_val);
     };
 
-    checkProp(map.data["BoolProp"], true);
-    checkProp(map.data["IntProp"], 42);
-    checkProp(map.data["FloatProp"], 3.14f);
-    checkProp(map.data["StringProp"], std::string("Hello World"));
+    checkProp(map, "BoolProp", true);
+    checkProp(map, "IntProp", 42);
+    checkProp(map, "FloatProp", 3.14f);
+    checkProp(map, "StringProp", std::string("Hello World"));
 }
 
 TEST(TileMapTests, MapWith2Layers)
@@ -103,11 +103,11 @@ TEST(TileMapTests, MapWith2Layers)
     auto& layer1 = result->getTileLayers().at(0);
     auto& layer2 = result->getTileLayers().at(1);
 
-    ASSERT_EQ(layer1.tile_ids.size(), 8);
-    ASSERT_EQ(layer2.tile_ids.size(), 8);
+    tpp::UVec2 expected { 4, 2 };
+    ASSERT_EQ(layer1.tile_ids.size(), expected);
 
-    EXPECT_EQ(layer1.tile_ids.at(3).tileset, 0);
-    EXPECT_EQ(layer1.tile_ids.at(3).id, 3);
+    EXPECT_EQ(layer1.tile_ids.at(3, 0).tileset, 0);
+    EXPECT_EQ(layer1.tile_ids.at(3, 0).id, 3);
 
     for (auto tile : layer2.tile_ids)
     {
@@ -125,10 +125,10 @@ TEST(TileMapTests, MapProperties)
     auto& layer = result->getTileLayers().at(0);
 
     ASSERT_TRUE(result.value().getProperties() != nullptr);
-    auto val = result->getProperties()->data.at("TestProperty");
-    EXPECT_TRUE(std::get_if<float>(&val.value) != nullptr);
+    auto val = result->getProperties()->get<float>("TestProperty");
+    EXPECT_TRUE(val.has_value());
 
     ASSERT_TRUE(layer.custom_properties != nullptr);
-    auto val2 = layer.custom_properties->data.at("TestProperty");
-    EXPECT_TRUE(std::get_if<float>(&val2.value) != nullptr);
+    auto val2 = layer.custom_properties->get<float>("TestProperty");
+    EXPECT_TRUE(val2.has_value());
 }

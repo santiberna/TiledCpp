@@ -39,4 +39,5 @@ target_sources(${Tests}
     PRIVATE
         parse_helpers_tests.cpp 
         tiledcpp_tests.cpp 
+        array2d_tests.cpp
 )

@@ -16,6 +16,7 @@ struct TILEDCPP_API IVec2
     int32_t x {};
     int32_t y {};
 
+    IVec2() = default;
     IVec2(int32_t x, int32_t y);
     IVec2(const UVec2& uvec);
 
@@ -26,6 +27,9 @@ struct TILEDCPP_API IVec2
 
 struct TILEDCPP_API UVec2
 {
+    UVec2() = default;
+    UVec2(uint32_t x, uint32_t y);
+
     uint32_t x {};
     uint32_t y {};
 

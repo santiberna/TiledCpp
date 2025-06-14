@@ -4,6 +4,7 @@
 
 #include <optional>
 
+#include "tiledcpp/types/array2d.hpp"
 #include "tiledcpp/types/image.hpp"
 #include "tiledcpp/types/properties.hpp"
 
@@ -42,13 +43,15 @@ public:
 
     static Result<TileSet> fromTSX(const std::string& path, std::ostream* warnings = nullptr);
 
-    const PropertyMap* getProperties() const { return custom_properties.get(); }
-
     std::optional<URect> getTileRect(uint32_t tile_id) const;
     uint32_t getTileCount() const { return tile_count; }
     UVec2 getTileSize() const { return tile_size; }
+
+    Image& getImage() { return image; }
     const Image& getImage() const { return image; }
+
     const std::string& getName() const { return name; }
+    const PropertyMap* getProperties() const { return custom_properties.get(); }
     const TileData* getTileMetadata(uint32_t id) const;
 
 private:
@@ -75,7 +78,7 @@ struct TILEDCPP_API TileID
 
 struct TILEDCPP_API TileLayer
 {
-    std::vector<TileID> tile_ids;
+    Array2D<TileID> tile_ids;
     std::unique_ptr<PropertyMap> custom_properties {};
 };
 
@@ -94,6 +97,8 @@ public:
 
     static Result<TileMap> fromTMX(const std::string& path, std::ostream* warnings = nullptr);
 
+    std::vector<TileSet>& getTileSets() { return tile_sets; }
+    std::vector<TileLayer>& getTileLayers() { return tile_layers; }
     const std::vector<TileSet>& getTileSets() const { return tile_sets; }
     const std::vector<TileLayer>& getTileLayers() const { return tile_layers; }
 

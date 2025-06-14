@@ -220,20 +220,25 @@ Result<TileMap> TileMap::fromTMX(const std::string& path, std::ostream* warnings
             auto tile_indices = detail::parseAllInts(csv_data);
 
             TileLayer mapped_layer {};
-            mapped_layer.tile_ids.reserve(tile_indices.size());
+            mapped_layer.tile_ids = Array2D<TileID>(out.map_size.x, out.map_size.y);
 
-            for (auto tile_id : tile_indices)
+            size_t index = 0;
+            for (auto& tile_id : mapped_layer.tile_ids)
             {
+                auto t = tile_indices.at(index);
+
                 for (uint32_t rev_it = first_gids.size() - 1; rev_it < first_gids.size(); rev_it--)
                 {
                     auto first = first_gids.at(rev_it);
 
-                    if ((uint32_t)tile_id >= first)
+                    if ((uint32_t)t >= first)
                     {
-                        mapped_layer.tile_ids.emplace_back(TileID { rev_it, tile_id - first });
+                        tile_id = TileID { rev_it, t - first };
                         break;
                     }
                 }
+
+                index += 1;
             }
 
             // Custom Properties

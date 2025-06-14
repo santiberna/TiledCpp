@@ -12,6 +12,12 @@ tpp::IVec2::IVec2(const UVec2& uvec)
 {
 }
 
+tpp::UVec2::UVec2(uint32_t x, uint32_t y)
+    : x(x)
+    , y(y)
+{
+}
+
 tpp::Pixel::Pixel(uint8_t a, uint8_t r, uint8_t g, uint8_t b)
     : a(a)
     , r(r)

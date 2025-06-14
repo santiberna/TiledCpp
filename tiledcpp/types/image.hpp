@@ -24,7 +24,6 @@ public:
     Image& operator=(Image&&) = default;
 
     static Result<Image> fromPath(const std::string& path);
-
     void freeData();
 
     Pixel getPixel(const UVec2& pos) const;
