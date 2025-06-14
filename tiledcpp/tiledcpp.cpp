@@ -1,9 +1,9 @@
 #include "tiledcpp/tiledcpp.hpp"
-
 #include "tiledcpp/detail/parse_helpers.hpp"
-#include "tiledcpp/detail/xml_helpers.hpp"
 
+#include <RapidXML/rapidxml.hpp>
 #include <algorithm>
+
 
 using namespace tpp;
 

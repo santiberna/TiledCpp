@@ -1,4 +1,8 @@
-#include <tiledcpp/types/math.hpp>
+#pragma once
+#include "tiledcpp/config.hpp"
+
+#include "tiledcpp/types/math.hpp"
+
 #include <vector>
 
 namespace tpp
