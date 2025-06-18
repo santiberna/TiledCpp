@@ -67,10 +67,34 @@ private:
     UVec2 tile_size {};
 };
 
-struct TILEDCPP_API TileID
+class TILEDCPP_API TileID
 {
-    uint32_t tileset {};
-    uint32_t id {};
+public:
+    TileID() = default;
+    TileID(uint32_t tileset, uint32_t flag_id);
+
+    uint32_t getId() const;
+    uint32_t getTileset() const;
+
+    bool isFlippedHorizontally() const;
+    bool isFlippedVertically() const;
+
+    bool isValid() const { return flag_id != INVALID_ID; }
+
+private:
+    enum TileFlags : uint32_t
+    {
+        FLIPPED_HORIZONTALLY_FLAG = 0x80000000,
+        FLIPPED_VERTICALLY_FLAG = 0x40000000,
+        FLIPPED_DIAGONALLY_FLAG = 0x20000000,
+        ROTATED_HEXAGONAL_120_FLAG = 0x10000000,
+
+        FLAG_MASK = 0xF0000000,
+        INVALID_ID = 0xFFFFFFFF
+    };
+
+    uint32_t tileset = INVALID_ID;
+    uint32_t flag_id = INVALID_ID;
 };
 
 struct TILEDCPP_API TileLayer

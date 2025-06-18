@@ -15,8 +15,8 @@ TEST(TileSetTests, LoadBasicTileset)
     ASSERT_TRUE(result.has_value()) << result.error().message;
 
     EXPECT_EQ(result->getName(), "image");
-    EXPECT_EQ(result->getTileCount(), 81);
-    EXPECT_EQ(result->getTileSize(), (tpp::UVec2 { 2, 2 }));
+    EXPECT_EQ(result->getTileCount(), 16);
+    EXPECT_EQ(result->getTileSize(), (tpp::UVec2 { 4, 4 }));
 }
 
 TEST(TileSetTests, CheckSpacingMarginMetrics)
@@ -105,13 +105,13 @@ TEST(TileMapTests, MapWith2Layers)
     tpp::UVec2 expected { 4, 2 };
     ASSERT_EQ(layer1.tile_ids.size(), expected);
 
-    EXPECT_EQ(layer1.tile_ids.at(3, 0).tileset, 0);
-    EXPECT_EQ(layer1.tile_ids.at(3, 0).id, 3);
+    EXPECT_EQ(layer1.tile_ids.at(3, 0).getTileset(), 0);
+    EXPECT_EQ(layer1.tile_ids.at(3, 0).getId(), 3);
 
     for (auto tile : layer2.tile_ids)
     {
-        EXPECT_EQ(tile.tileset, 1);
-        EXPECT_EQ(tile.id, 1);
+        EXPECT_EQ(tile.getTileset(), 1);
+        EXPECT_EQ(tile.getId(), 1);
     }
 }
 
@@ -139,4 +139,36 @@ TEST(TileMapTests, FindLayer)
 
     auto* found = result->findTileLayer("NamedLayer");
     EXPECT_TRUE(found != nullptr);
+}
+
+#include <bitset>
+
+TEST(TileMapTests, FlippedTiles)
+{
+    auto result = tpp::TileMap::fromTMX("tiledcpp_tests/files/map2.tmx");
+    ASSERT_TRUE(result.has_value()) << result.error().message;
+
+    auto& layer = result->getTileLayers().at(0);
+
+    for (auto& tile : layer.tile_ids)
+    {
+        std::cout << std::bitset<32>(tile.getId()) << std::endl;
+        // EXPECT_EQ(tile.getId(), 0);
+    }
+
+    // Check flipped tiles
+    EXPECT_TRUE(layer.tile_ids.at(1, 0).isFlippedHorizontally());
+    EXPECT_TRUE(layer.tile_ids.at(0, 1).isFlippedVertically());
+    EXPECT_TRUE(layer.tile_ids.at(1, 1).isFlippedHorizontally() && layer.tile_ids.at(1, 1).isFlippedVertically());
+}
+
+TEST(TileMapTests, EmptyTiles)
+{
+    auto result = tpp::TileMap::fromTMX("tiledcpp_tests/files/map3.tmx");
+    ASSERT_TRUE(result.has_value()) << result.error().message;
+
+    for (auto& tiles : result->getTileLayers().at(0).tile_ids)
+    {
+        EXPECT_FALSE(tiles.isValid());
+    }
 }

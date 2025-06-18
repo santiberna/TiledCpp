@@ -3,6 +3,7 @@
 
 #include "tiledcpp/types/math.hpp"
 
+#include <stdexcept>
 #include <vector>
 
 namespace tpp
@@ -143,12 +144,20 @@ Array2D<T>::Array2D(uint32_t width, uint32_t height, const T& init)
 template <typename T>
 T& Array2D<T>::at(uint32_t x, uint32_t y)
 {
+    if (x >= array_size.x || y >= array_size.y)
+    {
+        throw std::out_of_range("Array2D index out of bounds");
+    }
     return data[y * array_size.x + x];
 }
 
 template <typename T>
 const T& Array2D<T>::at(uint32_t x, uint32_t y) const
 {
+    if (x >= array_size.x || y >= array_size.y)
+    {
+        throw std::out_of_range("Array2D index out of bounds");
+    }
     return data[y * array_size.x + x];
 }
 

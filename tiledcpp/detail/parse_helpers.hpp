@@ -17,7 +17,8 @@ TILEDCPP_API std::string getFileContents(const std::string& path);
 
 TILEDCPP_API std::optional<int> parseInt(std::string_view view);
 TILEDCPP_API std::optional<float> parseFloat(std::string_view view);
+TILEDCPP_API std::optional<uint32_t> parseIndex(std::string_view view);
 TILEDCPP_API std::optional<uint32_t> parseHex(std::string_view view);
 
-TILEDCPP_API std::vector<int> parseAllInts(std::string_view view);
+TILEDCPP_API std::vector<uint32_t> parseCSV(std::string_view view);
 }

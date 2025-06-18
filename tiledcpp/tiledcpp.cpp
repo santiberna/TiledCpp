@@ -31,6 +31,50 @@ std::unique_ptr<PropertyMap> tryGetProperties(const rapidxml::xml_node<char>* no
     return nullptr;
 }
 
+TileID::TileID(uint32_t tileset, uint32_t flag_id)
+    : tileset(tileset)
+    , flag_id(flag_id)
+{
+}
+
+uint32_t TileID::getId() const
+{
+    return flag_id;
+}
+
+uint32_t TileID::getTileset() const
+{
+    return tileset;
+}
+
+bool TileID::isFlippedHorizontally() const
+{
+    return flag_id & TileFlags::FLIPPED_HORIZONTALLY_FLAG;
+}
+
+bool TileID::isFlippedVertically() const
+{
+    return flag_id & TileFlags::FLIPPED_VERTICALLY_FLAG;
+}
+
+TileID calculateTileID(const std::vector<uint32_t>& first_gids, uint32_t global_gid)
+{
+    if (first_gids.empty() || global_gid == 0)
+    {
+        return TileID();
+    }
+
+    for (uint32_t i = first_gids.size() - 1; i >= 0; --i)
+    {
+        if (first_gids.at(i) <= global_gid)
+        {
+            return TileID(i, global_gid - first_gids.at(i));
+        }
+    }
+
+    return TileID();
+}
+
 // Implementation
 
 Result<TileSet> TileSet::fromTSX(const std::string& path, [[maybe_unused]] std::ostream* warnings)
@@ -223,7 +267,7 @@ Result<TileMap> TileMap::fromTMX(const std::string& path, [[maybe_unused]] std::
         {
             std::string_view csv_data = { layer->first_node("data")->value(), layer->first_node("data")->value_size() };
 
-            auto tile_indices = detail::parseAllInts(csv_data);
+            auto tile_indices = detail::parseCSV(csv_data);
 
             TileLayer mapped_layer {};
 
@@ -237,20 +281,7 @@ Result<TileMap> TileMap::fromTMX(const std::string& path, [[maybe_unused]] std::
             size_t index = 0;
             for (auto& tile_id : mapped_layer.tile_ids)
             {
-                auto t = tile_indices.at(index);
-
-                for (uint32_t rev_it = first_gids.size() - 1; rev_it < first_gids.size(); rev_it--)
-                {
-                    auto first = first_gids.at(rev_it);
-
-                    if ((uint32_t)t >= first)
-                    {
-                        tile_id = TileID { rev_it, t - first };
-                        break;
-                    }
-                }
-
-                index += 1;
+                tile_id = calculateTileID(first_gids, tile_indices.at(index++));
             }
 
             // Custom Properties

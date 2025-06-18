@@ -21,12 +21,12 @@ TEST(ParseHelpersTests, ParseNumberWithOffsetNegative)
 
 TEST(ParseHelpersTests, ParseAllNumbers)
 {
-    std::string_view str = "1234 -5678 90";
-    auto result = tpp::detail::parseAllInts(str);
+    std::string_view str = "1234,\n5678,\n90";
+    auto result = tpp::detail::parseCSV(str);
 
     EXPECT_EQ(result.size(), 3);
     EXPECT_EQ(result[0], 1234);
-    EXPECT_EQ(result[1], -5678);
+    EXPECT_EQ(result[1], 5678);
     EXPECT_EQ(result[2], 90);
 }
 

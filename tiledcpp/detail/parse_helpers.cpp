@@ -75,6 +75,19 @@ std::optional<float> tpp::detail::parseFloat(std::string_view view)
     return std::nullopt;
 }
 
+std::optional<uint32_t> tpp::detail::parseIndex(std::string_view view)
+{
+    uint32_t val {};
+    auto result = std::from_chars(view.data(), view.data() + view.size(), val, 10);
+
+    if (result.ec == std::errc {})
+    {
+        return val;
+    }
+
+    return std::nullopt;
+}
+
 std::optional<uint32_t> tpp::detail::parseHex(std::string_view view)
 {
     uint32_t val {};
@@ -87,90 +100,40 @@ std::optional<uint32_t> tpp::detail::parseHex(std::string_view view)
     return std::nullopt;
 }
 
-std::vector<int> tpp::detail::parseAllInts(std::string_view view)
+std::vector<uint32_t> tpp::detail::parseCSV(std::string_view view)
 {
-    std::vector<int> out {};
+    std::vector<uint32_t> out {};
 
-    auto end_it = view.data() + view.size();
-    for (auto it = view.data(); it != end_it; ++it)
+    auto next_comma = view.find_first_of(',');
+    while (next_comma != std::string_view::npos)
     {
-        if (std::isdigit(*it) || *it == '-')
+        std::string_view token = view.substr(0, next_comma);
+
+        if (token.front() == '\n')
         {
-            std::string_view remaining_view = { it, (size_t)(end_it - it) };
-
-            int val {};
-            auto result = std::from_chars(remaining_view.data(), remaining_view.data() + remaining_view.size(), val, 10);
-
-            if (result.ec == std::errc {})
-            {
-                out.emplace_back(val);
-                it = result.ptr;
-            }
+            token.remove_prefix(1);
         }
 
-        if (it == end_it)
-            break;
-    }
-
-    return out;
-}
-
-template <typename T>
-std::optional<std::pair<T, ptrdiff_t>> parseNumberWithOffset(std::string_view str, int base)
-{
-    T val {};
-    auto result = std::from_chars(str.data(), str.data() + str.size(), val, base);
-    if (result.ec == std::errc {})
-    {
-        ptrdiff_t diff = result.ptr - str.data();
-        return std::make_pair(val, diff);
-    }
-    else
-    {
-        return std::nullopt;
-    }
-}
-
-template <typename T>
-std::optional<T> parseHex(std::string_view str)
-{
-    if (auto v = parseNumberWithOffset<T>(str, 16))
-    {
-        return v->first;
-    }
-    return std::nullopt;
-}
-
-template <typename T>
-std::optional<T> parseNumber(std::string_view str)
-{
-    if (auto v = parseNumberWithOffset<T>(str, 10))
-    {
-        return v->first;
-    }
-    return std::nullopt;
-}
-
-template <typename T>
-std::vector<T> parseAllNumbers(std::string_view str)
-{
-    std::vector<T> out {};
-
-    auto end_it = str.end();
-    for (auto it = str.begin(); it != end_it; ++it)
-    {
-        if (std::isdigit(*it) || *it == '-')
+        if (auto parsed_num = parseIndex(token))
         {
-            std::string_view remaining_view = { &*it, (size_t)(end_it - it) };
-            if (auto parsed_num = parseNumberWithOffset<T>(remaining_view, 10))
-            {
-                it += parsed_num.value().second;
-                out.emplace_back(parsed_num.value().first);
-            }
+            out.emplace_back(parsed_num.value());
         }
 
-        if (it == end_it)
-            break;
+        view.remove_prefix(next_comma + 1);
+        next_comma = view.find_first_of(',');
+    }
+
+    if (!view.empty())
+    {
+        if (view.front() == '\n')
+        {
+            view.remove_prefix(1);
+        }
+
+        if (auto parsed_num = parseIndex(view))
+        {
+            out.emplace_back(parsed_num.value());
+        }
     }
 
     return out;
