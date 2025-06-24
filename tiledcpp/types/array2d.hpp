@@ -9,6 +9,7 @@
 namespace tpp
 {
 
+// Iterator for Array2D, also allows for getting the 2D position of the element in the array
 template <typename T>
 class Array2DIterator
 {
@@ -34,7 +35,8 @@ public:
     bool operator==(const Self& other) const;
     bool operator!=(const Self& other) const;
 
-    tpp::UVec2 getIndices() const;
+    // Returns the array position of the iterator
+    tpp::UVec2 getPosition() const;
 
 private:
     UnderlyingIterator base {};

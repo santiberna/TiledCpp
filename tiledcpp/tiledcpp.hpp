@@ -45,8 +45,14 @@ public:
     const Image& getImage() const { return image; }
 
     const std::string& getName() const { return name; }
+
+    // If the tileset does not have any properties, will return nullptr
     const PropertyMap* getProperties() const { return custom_properties.get(); }
+
+    // If the tile does not have any properties, will return nullptr
     const PropertyMap* getTileProperties(uint32_t tile) const;
+
+    // If the tile does not have any animations, will return nullptr
     const Animation* getTileAnimation(uint32_t tile) const;
 
 private:
@@ -67,6 +73,8 @@ private:
     UVec2 tile_size {};
 };
 
+// Tile id: contains tileset and tile index for a map tile position
+// Can be invalid if the tile is empty, check with isValid()
 class TILEDCPP_API TileID
 {
 public:
@@ -79,6 +87,7 @@ public:
     bool isFlippedHorizontally() const;
     bool isFlippedVertically() const;
 
+    // Empty map tiles are not valid
     bool isValid() const { return flag_id != INVALID_ID; }
 
 private:
@@ -124,9 +133,13 @@ public:
     const std::vector<TileSet>& getTileSets() const { return tile_sets; }
     const std::vector<TileLayer>& getTileLayers() const { return tile_layers; }
 
+    // Find a Tile layer based on name. Returns nullptr if not found
     const TileLayer* findTileLayer(const std::string& name) const;
+
+    // Find a Tile layer based on name. Returns nullptr if not found
     TileLayer* findTileLayer(const std::string& name);
 
+    // If the map does not have any animations, will return nullptr
     const PropertyMap* getProperties() const { return custom_properties.get(); }
 
     UVec2 getMapGridSize() const { return map_size; }

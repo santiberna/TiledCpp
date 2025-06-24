@@ -12,8 +12,8 @@ namespace tpp::detail
 TILEDCPP_API std::string getDirectory(const std::string& path);
 TILEDCPP_API std::string getExtension(const std::string& path);
 TILEDCPP_API std::string resolvePath(const std::string& base, const std::string& path);
-TILEDCPP_API std::string makePreferredPath(const std::string& path);
 TILEDCPP_API std::string getFileContents(const std::string& path);
+TILEDCPP_API std::string makePreferredPath(const std::string& path);
 
 TILEDCPP_API std::optional<int> parseInt(std::string_view view);
 TILEDCPP_API std::optional<float> parseFloat(std::string_view view);

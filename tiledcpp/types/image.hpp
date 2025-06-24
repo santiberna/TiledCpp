@@ -23,7 +23,10 @@ public:
     Image(Image&&) = default;
     Image& operator=(Image&&) = default;
 
+    // Loads an image from a file.
     static Result<Image> fromPath(const std::string& path);
+
+    // Releases the image data. Useful if you don't need it anymore
     void freeData();
 
     Pixel getPixel(const UVec2& pos) const;

@@ -11,7 +11,9 @@ tpp::Result<tpp::Image> tpp::Image::fromPath(const std::string& path)
 
     if (data == nullptr)
     {
-        Error err { std::string("[Image] Failed to load image: ") + path };
+        std::string message = "[TiledCpp Image] Failed to load image (" + path + "): " + stbi_failure_reason();
+        Error err { message };
+
         return tl::make_unexpected(err);
     }
 
