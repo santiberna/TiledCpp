@@ -24,7 +24,7 @@ auto map = tpp::TileMap::fromTMX("assets/my_map.tmx").value();
 
 for (tpp::TileSet& tileset : map.getTileSets())
 {
-    tpp::Image image = tileset.getImage();
+    tpp::Image& image = tileset.getImage();
     tileset_images.emplace_back(GPUImage(renderer, image.getData(), image.getSize()));
     image.freeData(); // Uploaded to GPU, no need to have it anymore
 }
