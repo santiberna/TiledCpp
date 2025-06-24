@@ -9,14 +9,14 @@ TiledCpp is a C++ parser for the `.tmx` and `.tsx` Tiled formats. It directly lo
 #include <tiledcpp/tiledcpp.hpp>
 ```
 
-The library uses static methods to initialize objects, returning a `expected` that you can handle gracefully or `.value()` to get:
+The library uses static methods to initialize objects, returning a `expected` that you can handle gracefully or `.value()` to get it. For example, user code can just:
 
 ```c++
-tpp::Result level_map = tpp::TileMap::fromTMX("assets/my_map.tmx").value();
+tpp::TileMap level_map = tpp::TileMap::fromTMX("assets/my_map.tmx").value();
 tpp::TileSet unit_spritesheet = tpp::TileSet::fromTSX("assets/my_spritesheet.tsx").value();
 ```
 
-Image data is automatically loaded into memory when a TileSet is loaded:
+Image data is automatically loaded into memory when a TileSet is loaded, then the user can simply load it into a Texture / GPU memory (depending on framework). For example, after loading a map, you can:
 
 ```c++
 std::vector<GPUImage> tileset_images{};
@@ -30,7 +30,7 @@ for (tpp::TileSet& tileset : map.getTileSets())
 }
 ```
 
-Then, just iterate through every layer and draw every tile:
+To render a tile map, just iterate through every layer and draw every tile. TiledCpp provides a specialized ``Array2D`` container to loop through all elements in a 2D layer:
 
 ```c++
 for (tpp::TileLayer& layer : map.getTileLayers())
@@ -63,7 +63,7 @@ for (tpp::TileLayer& layer : map.getTileLayers())
 
 ## Using the library - CMake
 
-The preferred method is through using CMake's ``FetchContent``:
+The preferred method is using CMake's ``FetchContent``:
 
 ```c++
 include(FetchContent)
@@ -76,6 +76,8 @@ FetchContent_Declare(
     GIT_PROGRESS TRUE
 )
 FetchContent_MakeAvailable(tiledcpp)
+
+target_link_libraries(MY_APP PRIVATE TiledCpp)
 ```
 
 Otherwise, you can always clone the repository and the subdirectory:
@@ -83,6 +85,8 @@ Otherwise, you can always clone the repository and the subdirectory:
 ```
 add_subdirectory(Folder/To/TiledCpp)
 ```
+
+Currently TiledCpp only supports CMake.
 
 ## Samples and Demos
 
@@ -92,28 +96,28 @@ Check out the samples repository for more advanced and detailed examples:
 
 ## Supported Features
 
-- [x] Maps
-  - [x] Orthogonal Maps
-  - [ ] Isometric Maps
-  - [ ] Hexagonal Maps
-  - [ ] Parallax
-  - [ ] Infinite Maps
-- [x] Tilesets
-  - [x] Spacing and Margins
-  - [x] External Images
-  - [ ] Object alignment
-  - [ ] Fill Mode
-  - [ ] Wangsets
-  - [ ] Embedded Images
-- [x] Layers
-  - [x] Tile Layers
-  - [ ] Groups
-  - [ ] Object Groups
-  - [ ] Objects
-  - [ ] Image Layers
-  - [ ] Text
-  - [ ] Polygons
-  - [ ] Compressed Tile Data  
-- [x] Animations
-- [x] Custom Properties
-- [ ] Templates
+- Maps ✅
+  - Orthogonal Maps ✅
+  - Isometric Maps ❌
+  - Hexagonal Maps ❌
+  - Parallax ❌
+  - Infinite Maps ❌
+- Tilesets ✅
+  - Spacing and Margins ✅
+  - External Images ✅
+  - Object alignment ❌
+  - Fill Mode ❌
+  - Wangsets ❌
+  -  Embedded Images ❌
+- Layers ✅
+  - Tile Layers ✅
+  - Groups ❌
+  - Object Groups ❌
+  - Objects ❌
+  - Image Layers ❌
+  - Text ❌
+  - Polygons ❌
+  - Compressed Tile Data ❌
+- Animations ✅
+- Custom Properties ✅
+- Templates ❌
