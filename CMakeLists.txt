@@ -6,14 +6,12 @@ project(TiledCpp)
 
 option(BUILD_TESTS "Build unit test executable (GoogleTest)" OFF)
 
-### REQUIREMENTS
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 ### LIBRARY
 
 add_library(${PROJECT_NAME})
+
+target_compile_features(${PROJECT_NAME} 
+    PRIVATE cxx_std_17)
 
 target_include_directories(${PROJECT_NAME} 
     PUBLIC 
